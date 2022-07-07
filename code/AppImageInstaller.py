@@ -15,6 +15,7 @@
 
 
 from pathlib import Path
+import PySimpleGUI as sg
 from shutil import copyfile
 
 import logHandler
@@ -75,7 +76,8 @@ def install_package(package_id: str, package_name: str, path_to_appimage: Path,
         return 2
 
     package_path_appimage = package_path.joinpath(f'{package_id}.AppImage')
-    package_path_icon = package_path.joinpath(f'{package_id}{path_to_icon.suffix}')
+    if not path_to_icon is None:
+        package_path_icon = package_path.joinpath(f'{package_id}{path_to_icon.suffix}')
 
     # Create .desktop file
     with open(desktop_file_path, 'w') as desktop_file:
@@ -92,11 +94,9 @@ def install_package(package_id: str, package_name: str, path_to_appimage: Path,
         if not comment is None:
             desktop_file.write(f'Comment={comment}\n')
         if not categories is None:
-            # TODO: ';' auch am Ende?
-            desktop_file.write(f'Categories={";".join(categories)}\n')
+            desktop_file.write(f'Categories={categories}\n')
         if not keywords is None:
-            # TODO: ';' auch am Ende?
-            desktop_file.write(f'Keywords={";".join(keywords)}\n')
+            desktop_file.write(f'Keywords={keywords}\n')
         if not terminal is None:
             desktop_file.write(f'Terminal={terminal}\n')
 
@@ -117,4 +117,143 @@ def install_package(package_id: str, package_name: str, path_to_appimage: Path,
     return 0
 
 
-install_package('test_package', 'Test Package', Path('./Test.AppImage'), Path('./Test.png'), 'Ein Kommentar', ['Audio', 'Video'], ['find', 'me'], False, 'Test')
+# gui
+def gui():
+    sg.theme('DarkAmber')
+
+    layout_row_main = [
+        [
+            sg.Text('Naming', font=("Helvetica", 22))
+        ],
+
+        [
+            sg.Text('Package name', size=(20, 1)),
+            sg.InputText(key='-PACKAGE_NAME-')
+        ],
+        [
+            sg.Text('Package identifier', size=(20, 1)),
+            sg.InputText(key='-PACKAGE_ID-')
+        ],
+        [
+            sg.Text('Generic name', size=(20, 1)),
+            sg.InputText(key='-GENERIC_NAME-')
+        ],
+        [
+            sg.Text('Comment', size=(20, 1)),
+            sg.InputText(key='-COMMENT-')
+        ]
+    ]
+
+    layout_row_files = [
+        [
+            sg.Text('File selection', font=("Helvetica", 22))
+        ],
+
+        [
+            sg.Text('AppImage', size=(20, 1)),
+            sg.InputText(key='-FILE_APPIMAGE-'),
+            sg.FileBrowse(file_types=[('AppImage', '*.AppImage')])
+        ],
+        [
+            sg.Text('Icon', size=(20, 1)),
+            sg.InputText(key='-FILE_ICON-'),
+            sg.FileBrowse(file_types=[('JPEG', '*.jpg'), ('PNG', '*.png')])
+        ],
+    ]
+
+    layout_row_metadata_search = [
+        [
+            sg.Text('Search metadata', font=("Helvetica", 22))
+        ],
+
+        [
+            sg.Text('Keywords', size=(20, 1)),
+            sg.InputText(key='-KEYWORDS-'),
+            sg.Text('(";" separated)')
+        ],
+        [
+            sg.Text('Categories', size=(20, 1)),
+            sg.InputText(key='-CATEGORIES-'),
+            sg.Text('(";" separated)')
+        ]
+    ]
+
+    layout_row_metadata_execution = [
+        [
+            sg.Text('Execution metadata', font=("Helvetica", 22))
+        ],
+
+        [
+            sg.Text('Terminal', size=(20, 1)),
+            sg.Drop(values=('False', 'True'), key='-TERMINAL-', auto_size_text=True)
+        ]
+    ]
+
+    layout = [
+        [layout_row_main],
+        [sg.HSeparator(pad=(10, 25))],
+        [layout_row_metadata_search],
+        [sg.HSeparator(pad=(10, 25))],
+        [layout_row_files],
+        [sg.HSeparator(pad=(10, 25))],
+        [layout_row_metadata_execution],
+        [sg.HSeparator(pad=(10, 25))],
+        [sg.Button('Install')]
+    ]
+
+    window = sg.Window('AppImageInstaller', layout)
+
+    while True:
+        event, values = window.read()
+        if event == 'Install':
+            # Get values from input fields
+            package_id = values['-PACKAGE_ID-']
+            package_name = values['-PACKAGE_NAME-']
+            generic_name = values['-GENERIC_NAME-']
+
+            file_appimage = Path(values['-FILE_APPIMAGE-'])
+            file_icon = Path(values['-FILE_ICON-'])
+            
+            comment = values['-COMMENT-']
+            categories = values['-CATEGORIES-']
+            keywords = values['-KEYWORDS-']
+            terminal = values['-TERMINAL-']
+
+            # Sanitize values
+            if package_id == '':
+                package_id = None
+            if package_name == '':
+                package_name = None
+            if generic_name == '':
+                generic_name = None
+            if not (file_appimage.exists() and file_appimage.is_file()):
+                file_appimage = None
+            if not (file_icon.exists() and file_icon.is_file()):
+                file_icon = None
+            if comment == '':
+                comment = None
+            if categories == '':
+                categories = None
+            if keywords == '':
+                keywords = None
+            if terminal == '':
+                terminal = None
+            
+            # Check if values valid and all supplied
+            # TODO
+
+            install_package(package_id = package_id,
+                            package_name = package_name,
+                            path_to_appimage = file_appimage,
+                            path_to_icon = file_icon,
+                            comment = comment,
+                            categories = categories,
+                            keywords = keywords,
+                            terminal = terminal,
+                            genericName = generic_name)
+        elif event == sg.WIN_CLOSED:
+            break
+
+
+gui()
+#install_package('test_package', 'Test Package', Path('./Test.AppImage'), Path('./Test.png'), 'Ein Kommentar', ['Audio', 'Video'], ['find', 'me'], False, 'Test')
