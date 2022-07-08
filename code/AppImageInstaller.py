@@ -119,11 +119,32 @@ def install_package(package_id: str, package_name: str, path_to_appimage: Path,
 
 # gui
 def gui():
+    global DESKTOP_FILES_DIRECTORY
+    global PACKAGES_DIRECTORY
+    global _LOGGER
+
     sg.theme('DarkAmber')
+
+    layout_row_settings = [
+        [
+            sg.Text('Installation settings', font=('Helvetica', 22))
+        ],
+
+        [
+            sg.Text('Packages directory', size=(20, 1)),
+            sg.InputText(PACKAGES_DIRECTORY.absolute(), key='-PACKAGES_DIRECTORY-'),
+            sg.FolderBrowse()
+        ],
+        [
+            sg.Text('.desktop directory', size=(20, 1)),
+            sg.InputText(DESKTOP_FILES_DIRECTORY.absolute(), key='-DESKTOP_FILES_DIRECTORY-'),
+            sg.FolderBrowse()
+        ]
+    ]
 
     layout_row_main = [
         [
-            sg.Text('Naming', font=("Helvetica", 22))
+            sg.Text('Naming', font=('Helvetica', 22))
         ],
 
         [
@@ -146,24 +167,24 @@ def gui():
 
     layout_row_files = [
         [
-            sg.Text('File selection', font=("Helvetica", 22))
+            sg.Text('File selection', font=('Helvetica', 22))
         ],
 
         [
             sg.Text('AppImage', size=(20, 1)),
             sg.InputText(key='-FILE_APPIMAGE-'),
-            sg.FileBrowse(file_types=[('AppImage', '*.AppImage')])
+            sg.FileBrowse(file_types=[('AppImage', '*.AppImage')], initial_folder=Path('~/Downloads'))
         ],
         [
             sg.Text('Icon', size=(20, 1)),
             sg.InputText(key='-FILE_ICON-'),
-            sg.FileBrowse(file_types=[('JPEG', '*.jpg'), ('PNG', '*.png')])
+            sg.FileBrowse(file_types=[('JPEG', '*.jpg'), ('PNG', '*.png')], initial_folder=Path('~/Downloads'))
         ],
     ]
 
     layout_row_metadata_search = [
         [
-            sg.Text('Search metadata', font=("Helvetica", 22))
+            sg.Text('Search metadata', font=('Helvetica', 22))
         ],
 
         [
@@ -180,7 +201,7 @@ def gui():
 
     layout_row_metadata_execution = [
         [
-            sg.Text('Execution metadata', font=("Helvetica", 22))
+            sg.Text('Execution metadata', font=('Helvetica', 22))
         ],
 
         [
@@ -190,6 +211,8 @@ def gui():
     ]
 
     layout = [
+        [layout_row_settings],
+        [sg.HSeparator(pad=(10, 25))],
         [layout_row_main],
         [sg.HSeparator(pad=(10, 25))],
         [layout_row_metadata_search],
