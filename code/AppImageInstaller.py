@@ -17,6 +17,7 @@
 from pathlib import Path
 import PySimpleGUI as sg
 from shutil import copyfile
+import stat
 
 import logHandler
 
@@ -25,13 +26,11 @@ _LOGGER = logHandler.getSimpleLogger(__name__, streamLogLevel=logHandler.INFO, f
 
 # Directory where the .AppImages will be installed
 #
-#PACKAGES_DIRECTORY = Path.home().joinpath('AppImages')
-PACKAGES_DIRECTORY = Path('./packages')
+PACKAGES_DIRECTORY = Path.home().joinpath('AppImages')
 
 # Directory where the .desktop files are stored.
 #
-#DESKTOP_FILES_DIRECTORY = Path.home().joinpath('.local/share/applications')
-DESKTOP_FILES_DIRECTORY = Path('./desktop_files')
+DESKTOP_FILES_DIRECTORY = Path.home().joinpath('.local/share/applications')
 
 
 # install_package
@@ -105,6 +104,7 @@ def install_package(package_id: str, package_name: str, path_to_appimage: Path,
         _LOGGER.error(f'AppImage not found! ({path_to_appimage})')
         return 3
     copyfile(path_to_appimage, package_path_appimage)
+    package_path_appimage.chmod(package_path_appimage.stat().st_mode | stat.S_IEXEC)
 
     # Copy icon
     if not path_to_icon is None:
