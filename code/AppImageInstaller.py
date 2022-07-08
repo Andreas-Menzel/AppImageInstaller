@@ -230,6 +230,9 @@ def gui():
         event, values = window.read()
         if event == 'Install':
             # Get values from input fields
+            tmp_packages_directory = values['-PACKAGES_DIRECTORY-']
+            tmp_desktop_files_directory = values['-DESKTOP_FILES_DIRECTORY-']
+
             package_id = values['-PACKAGE_ID-']
             package_name = values['-PACKAGE_NAME-']
             generic_name = values['-GENERIC_NAME-']
@@ -243,6 +246,11 @@ def gui():
             terminal = values['-TERMINAL-']
 
             # Sanitize values
+            if tmp_packages_directory == '' or not Path(tmp_packages_directory).exists():
+                tmp_packages_directory = None
+            if tmp_desktop_files_directory == '' or not Path(tmp_desktop_files_directory).exists():
+                tmp_desktop_files_directory = None
+
             if package_id == '':
                 package_id = None
             if package_name == '':
@@ -263,6 +271,16 @@ def gui():
                 terminal = None
             
             # Check if all required values were supplied
+            settings_directorys_invalid = []
+            if tmp_packages_directory is None:
+                settings_directorys_invalid.append('packages_directory')
+            if tmp_desktop_files_directory is None:
+                settings_directorys_invalid.append('desktop_files_directory')
+
+            if len(settings_directorys_invalid) > 0:
+                _LOGGER.warn(f'Can not install package. Directory does not exist: {", ".join(settings_directorys_invalid)}')
+                sg.popup('Can not install package.', f'Directory does not exist: {", ".join(settings_directorys_invalid)}')
+
             missing_arguments = []
             if package_id is None:
                 missing_arguments.append('package_id')
