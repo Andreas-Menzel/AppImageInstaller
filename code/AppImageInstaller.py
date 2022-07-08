@@ -303,9 +303,12 @@ def gui():
                             keywords = keywords,
                             terminal = terminal,
                             genericName = generic_name)
+
+            sg.popup('Installation succesful!')
+            break
         elif event == sg.WIN_CLOSED:
             break
 
 
-gui()
-#install_package('test_package', 'Test Package', Path('./Test.AppImage'), Path('./Test.png'), 'Ein Kommentar', ['Audio', 'Video'], ['find', 'me'], False, 'Test')
+if __name__ == '__main__':
+    gui()
