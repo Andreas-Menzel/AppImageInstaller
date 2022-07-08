@@ -25,12 +25,12 @@ _LOGGER = logHandler.getSimpleLogger(__name__, streamLogLevel=logHandler.INFO, f
 
 # Directory where the .AppImages will be installed
 #
-#PACKAGES_DIRECTORY = Path('~/AppImages')
+#PACKAGES_DIRECTORY = Path.home().joinpath('AppImages')
 PACKAGES_DIRECTORY = Path('./packages')
 
 # Directory where the .desktop files are stored.
 #
-#DESKTOP_FILES_DIRECTORY = Path('~/.local/share/applications')
+#DESKTOP_FILES_DIRECTORY = Path.home().joinpath('.local/share/applications')
 DESKTOP_FILES_DIRECTORY = Path('./desktop_files')
 
 
@@ -133,12 +133,12 @@ def gui():
         [
             sg.Text('Packages directory', size=(20, 1)),
             sg.InputText(PACKAGES_DIRECTORY.absolute(), key='-PACKAGES_DIRECTORY-'),
-            sg.FolderBrowse()
+            sg.FolderBrowse(initial_folder=PACKAGES_DIRECTORY)
         ],
         [
             sg.Text('.desktop directory', size=(20, 1)),
             sg.InputText(DESKTOP_FILES_DIRECTORY.absolute(), key='-DESKTOP_FILES_DIRECTORY-'),
-            sg.FolderBrowse()
+            sg.FolderBrowse(initial_folder=DESKTOP_FILES_DIRECTORY)
         ]
     ]
 
