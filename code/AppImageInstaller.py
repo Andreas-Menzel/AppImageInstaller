@@ -239,8 +239,19 @@ def gui():
             if terminal == '':
                 terminal = None
             
-            # Check if values valid and all supplied
-            # TODO
+            # Check if all required values were supplied
+            missing_arguments = []
+            if package_id is None:
+                missing_arguments.append('package_id')
+            if package_name is None:
+                missing_arguments.append('package_name')
+            if file_appimage is None:
+                missing_arguments.append('file_appimage')
+
+            if len(missing_arguments) > 0:
+                _LOGGER.warn(f'Can not install package. Arguments missing: {", ".join(missing_arguments)}')
+                sg.popup('Can not install package.', f'Arguments missing: {", ".join(missing_arguments)}')
+                continue
 
             install_package(package_id = package_id,
                             package_name = package_name,
