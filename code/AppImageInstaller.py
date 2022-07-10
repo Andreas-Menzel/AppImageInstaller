@@ -16,7 +16,7 @@
 
 from pathlib import Path
 import PySimpleGUI as sg
-from shutil import copyfile
+from shutil import copyfile, copytree
 import stat
 
 import logHandler
@@ -25,71 +25,77 @@ import logHandler
 _LOGGER = logHandler.getSimpleLogger(__name__, streamLogLevel=logHandler.INFO, fileLogLevel=logHandler.DEBUG)
 
 # Directory where the .AppImages will be installed
-#
 PACKAGES_DIRECTORY = Path.home().joinpath('AppImages')
 
 # Directory where the .desktop files are stored.
-#
 DESKTOP_FILES_DIRECTORY = Path.home().joinpath('.local/share/applications')
 
 
 # install_package
 #
-# @param    str         package_id          A short identifier of the package.
-#                                               Can be same as package_name.
-# @param    str         package_name        Name of the package to be installed.
-# @param    Path        path_to_appimage    Path to the .AppImage file.
-# @param    Path / None path_to_icon        Path to the icon.
-# @param    str / None  comment             .desktop entry: Comment.
-# @param    [str] / None categories         .desktop entry: Categories.
-# @param    [str] / None keywords           .desktop entry: Keywords.
-# @param    bool / None terminal            .desktop entry: Terminal.
-# @param    str / None  genericName         .desktop entry: GenericName.
+# @param    str             app_id              A short identifier of the app
+#                                                   Can be same as app_name.
+# @param    str             app_name            Name of the app to be installed.
+# @param    Path            path_executable     Path to the executable.
+# @param    [Path] / None   paths_add_files     Paths to additional app files.
+# @param    Path / None     path_add_files_dir  Path to directory containing
+#                                                   additional app files.
+# @param    Path / None     path_icon           Path to the icon.
+# @param    str / None      comment             .desktop entry: Comment.
+# @param    [str] / None    categories          .desktop entry: Categories.
+# @param    [str] / None    keywords            .desktop entry: Keywords.
+# @param    bool / None     terminal            .desktop entry: Terminal.
+# @param    str / None      genericName         .desktop entry: GenericName.
 #
-# @return   int         0   Everything fine. AppImage installed.
-# @return   int         1   Package directory already exists. Maybe the package
-#                               is already installed?
+# @return   int         0   Everything fine. App installed.
+# @return   int         1   App directory already exists. Maybe the app is
+#                               already installed?
 # @return   int         2   The .desktop directory does not exist.
-# @return   int         3   AppImage not found.
-# @return   int         4   Icon not found.
-def install_package(package_id: str, package_name: str, path_to_appimage: Path,
-                    path_to_icon: Path, comment: str = None,
+# @return   int         3   Executable not found.
+# @return   int         4   Additional app files not found.
+# @return   int         5   Icon not found.
+def install_package(app_id: str, app_name: str, path_executable: Path,
+                    paths_add_files: [Path], path_add_files_dir: Path,
+                    path_icon: Path, comment: str = None,
                     categories: [str] = None, keywords: [str] = None,
                     terminal: bool = False, genericName: str = None) -> int:
     global _LOGGER
     global DESKTOP_FILES_DIRECTORY
     global PACKAGES_DIRECTORY
 
-    package_path = PACKAGES_DIRECTORY.joinpath(package_id)
+    app_path = PACKAGES_DIRECTORY.joinpath(app_id)
+    app_path_application = app_path.joinpath('application')
 
-    # Check if package is already installed
-    if package_path.exists():
-        _LOGGER.error('Package directory already exists. Maybe the package is already installed?')
+    # Check if app is already installed
+    if app_path.exists():
+        _LOGGER.error('App directory already exists. Maybe the app is already installed?')
         return 1
-    package_path.mkdir(parents=True, exist_ok=False)
+    app_path_application.mkdir(parents=True)
     
-    # Check if .desktop directory exists
-    desktop_file_path = DESKTOP_FILES_DIRECTORY.joinpath(f'{package_id}.desktop')
+    # Check if .desktop-files directory exists
+    desktop_file_path = DESKTOP_FILES_DIRECTORY.joinpath(f'{app_id}.desktop')
+    app_desktop_file_path = app_path.joinpath(f'{app_id}.desktop')
     if not DESKTOP_FILES_DIRECTORY.exists():
-        _LOGGER.error(f'The .desktop directory does not exist! ({DESKTOP_FILES_DIRECTORY})')
+        _LOGGER.error(f'The .desktop-files directory does not exist! ({DESKTOP_FILES_DIRECTORY})')
         return 2
 
-    package_path_appimage = package_path.joinpath(f'{package_id}.AppImage')
-    if not path_to_icon is None:
-        package_path_icon = package_path.joinpath(f'{package_id}{path_to_icon.suffix}')
+    # Set executable- and icon-path of app
+    app_path_executable = app_path_application.joinpath(path_executable.name)
+    if not path_icon is None:
+        app_path_icon = app_path.joinpath(path_icon.name)
 
     # Create .desktop file
-    with open(desktop_file_path, 'w') as desktop_file:
+    with open(app_desktop_file_path, 'w') as desktop_file:
         desktop_file.write('[Desktop Entry]\n\n')
         desktop_file.write('Type=Application\n')
-        desktop_file.write(f'Name={package_name}\n')
+        desktop_file.write(f'Name={app_name}\n')
         if not genericName is None:
             desktop_file.write(f'GenericName={genericName}\n')
         # TODO: In Anführungszeichen ("")?
-        desktop_file.write(f'Exec={package_path_appimage.absolute()}\n')
-        if not path_to_icon is None:
+        desktop_file.write(f'Exec={app_path_executable.absolute()}\n')
+        if not path_icon is None:
             # TODO: In Anführungszeichen ("")?
-            desktop_file.write(f'Icon={package_path_icon.absolute()}\n')
+            desktop_file.write(f'Icon={app_path_icon.absolute()}\n')
         if not comment is None:
             desktop_file.write(f'Comment={comment}\n')
         if not categories is None:
@@ -98,20 +104,38 @@ def install_package(package_id: str, package_name: str, path_to_appimage: Path,
             desktop_file.write(f'Keywords={keywords}\n')
         if not terminal is None:
             desktop_file.write(f'Terminal={terminal}\n')
+    copyfile(app_desktop_file_path, desktop_file_path)
 
-    # Copy .AppImage file
-    if not path_to_appimage.exists():
-        _LOGGER.error(f'AppImage not found! ({path_to_appimage})')
+    # Copy executable file and make executable
+    if not path_executable.exists():
+        _LOGGER.error(f'Executable not found! ({path_executable})')
         return 3
-    copyfile(path_to_appimage, package_path_appimage)
-    package_path_appimage.chmod(package_path_appimage.stat().st_mode | stat.S_IEXEC)
+    copyfile(path_executable, app_path_executable)
+    app_path_executable.chmod(app_path_executable.stat().st_mode | stat.S_IEXEC)
+
+    # Copy additional app files
+    if not paths_add_files is None:
+        files_not_found = []
+        for path in paths_add_files:
+            if not path.exists():
+                files_not_found.append(path)
+            copyfile(path, app_path_application.joinpath(path.name))
+        if len(files_not_found) > 0:
+            _LOGGER.error(f'Additional app file(s) not found! ({";".join(files_not_found)})')
+            return 4
+    
+    if not path_add_files_dir is None:
+        if not path_add_files_dir.exists():
+            _LOGGER.error(f'Additional app files directory not found! ({path_add_files_dir})')
+            return 4
+        copytree(path_add_files_dir, app_path_application, dirs_exist_ok=True)
 
     # Copy icon
-    if not path_to_icon is None:
-        if not path_to_icon.exists():
-            _LOGGER.error(f'Icon not found! ({path_to_icon})')
-            return 4
-        copyfile(path_to_icon, package_path_icon)
+    if not path_icon is None:
+        if not path_icon.exists():
+            _LOGGER.error(f'Icon not found! ({path_icon})')
+            return 5
+        copyfile(path_icon, app_path_icon)
     
     _LOGGER.info('AppImage installed successfully.')
     return 0
@@ -149,11 +173,11 @@ def gui():
 
         [
             sg.Text('Package name', size=(20, 1)),
-            sg.InputText(key='-PACKAGE_NAME-')
+            sg.InputText(key='-APP_NAME-')
         ],
         [
             sg.Text('Package identifier', size=(20, 1)),
-            sg.InputText(key='-PACKAGE_ID-')
+            sg.InputText(key='-APP_ID-')
         ],
         [
             sg.Text('Generic name', size=(20, 1)),
@@ -233,8 +257,8 @@ def gui():
             tmp_packages_directory = values['-PACKAGES_DIRECTORY-']
             tmp_desktop_files_directory = values['-DESKTOP_FILES_DIRECTORY-']
 
-            package_id = values['-PACKAGE_ID-']
-            package_name = values['-PACKAGE_NAME-']
+            app_id = values['-APP_ID-']
+            app_name = values['-APP_NAME-']
             generic_name = values['-GENERIC_NAME-']
 
             file_appimage = Path(values['-FILE_APPIMAGE-'])
@@ -251,10 +275,10 @@ def gui():
             if tmp_desktop_files_directory == '' or not Path(tmp_desktop_files_directory).exists():
                 tmp_desktop_files_directory = None
 
-            if package_id == '':
-                package_id = None
-            if package_name == '':
-                package_name = None
+            if app_id == '':
+                app_id = None
+            if app_name == '':
+                app_name = None
             if generic_name == '':
                 generic_name = None
             if not (file_appimage.exists() and file_appimage.is_file()):
@@ -282,10 +306,10 @@ def gui():
                 sg.popup('Can not install package.', f'Directory does not exist: {", ".join(settings_directorys_invalid)}')
 
             missing_arguments = []
-            if package_id is None:
-                missing_arguments.append('package_id')
-            if package_name is None:
-                missing_arguments.append('package_name')
+            if app_id is None:
+                missing_arguments.append('app_id')
+            if app_name is None:
+                missing_arguments.append('app_name')
             if file_appimage is None:
                 missing_arguments.append('file_appimage')
 
@@ -294,10 +318,10 @@ def gui():
                 sg.popup('Can not install package.', f'Arguments missing: {", ".join(missing_arguments)}')
                 continue
 
-            install_package(package_id = package_id,
-                            package_name = package_name,
-                            path_to_appimage = file_appimage,
-                            path_to_icon = file_icon,
+            install_package(app_id = app_id,
+                            app_name = app_name,
+                            path_executable = file_appimage,
+                            path_icon = file_icon,
                             comment = comment,
                             categories = categories,
                             keywords = keywords,
@@ -311,4 +335,5 @@ def gui():
 
 
 if __name__ == '__main__':
-    gui()
+    #gui()
+    install_package('test2', 'Test 2', Path('/home/andreas/Documents/PrusaSlicer-2.4.2+linux-x64-GTK3-202204251120.AppImage'), [Path('/home/andreas/Documents/file1'), Path('/home/andreas/Documents/file2')], Path('/home/andreas/Documents/app_files'), Path('/home/andreas/Documents/Screenshot from 2022-07-04 08-37-14.png'))
