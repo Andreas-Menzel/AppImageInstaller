@@ -14,6 +14,10 @@
 #-------------------------------------------------------------------------------
 
 
+script_version = '0.0.0'
+
+
+import argparse
 from pathlib import Path
 import PySimpleGUI as sg
 from shutil import copyfile, copytree
@@ -30,6 +34,90 @@ PACKAGES_DIRECTORY = Path.home().joinpath('AppImages')
 # Directory where the .desktop files are stored.
 DESKTOP_FILES_DIRECTORY = Path.home().joinpath('.local/share/applications')
 
+# .desktop variables
+_APP_ID = None
+_APP_NAME = None
+_PATH_EXECUTABLE = None
+_PATHS_ADD_FILES = None
+_PATH_ADD_FILES_DIR = None
+_PATH_ICON = None
+_COMMENT = None
+_CATEGORIES = None
+_KEYWORDS = None
+_TERMINAL = None
+_GENERIC_NAME = None
+
+
+# Setup argument parser
+parser = argparse.ArgumentParser(description='Install AppImages and other \
+    non-installable programs and create XDG Desktop Menu entries.',
+    prog='AppImageInstaller')
+parser.add_argument('--version',
+    action='version',
+    version='%(prog)s ' + script_version)
+
+parser.add_argument('--ui', choices=['gui', 'tui', 'none'],
+    help='Specify the user interface. Select between graphical user interface, terminal user interface \
+        or non-interactive.')
+
+parser.add_argument('--app_id', help='ID of the app. Can be same as app_name')
+parser.add_argument('--app_name', help='Name of the app.')
+parser.add_argument('--path_executable', help='Path to the (main) executable file.')
+parser.add_argument('--paths_add_files', nargs='+', help='Path')
+parser.add_argument('--path_icon', help='Path to the app icon.')
+parser.add_argument('--comment', help='Comment describing the app.')
+parser.add_argument('--categories', nargs='+', help='')
+parser.add_argument('--keywords', nargs='+', help='')
+parser.add_argument('--terminal', help='')
+parser.add_argument('--generic_name', help='Generic name of the app.')
+
+args = parser.parse_args()
+
+
+# argument_parser
+#
+# Parses the arguments given by argparse to global variables.
+#
+# @return   None
+def argument_parser():
+    global _APP_ID
+    global _APP_NAME
+    global _PATH_EXECUTABLE
+    global _PATHS_ADD_FILES
+    global _PATH_ADD_FILES_DIR
+    global _PATH_ICON
+    global _COMMENT
+    global _CATEGORIES
+    global _KEYWORDS
+    global _TERMINAL
+    global _GENERIC_NAME
+
+    if not args.app_id is None:
+        _APP_ID = args.app_id
+    if not args.app_name is None:
+        _APP_NAME = args.app_name
+    if not args.path_executable is None:
+        _PATH_EXECUTABLE = Path(args.path_executable)
+    if not args.paths_add_files is None:
+        _PATHS_ADD_FILES = []
+        for path in args.paths_add_files:
+            _PATHS_ADD_FILES.append(Path(path))
+    if not args.path_icon is None:
+        _PATH_ICON = Path(args.path_icon)
+    if not args.comment is None:
+        _COMMENT = args.comment
+    if not args.categories is None:
+        _CATEGORIES = []
+        for category in args.categories:
+            _CATEGORIES.append(category)
+    if not args.keywords is None:
+        _KEYWORDS = []
+        for keyword in args.keywords:
+            _KEYWORDS.append(keyword)
+    if not args.terminal is None:
+        _TERMINAL = args.terminal
+    if not args.generic_name is None:
+        _GENERIC_NAME = args.generic_name
 
 # install_package
 #
@@ -141,11 +229,33 @@ def install_package(app_id: str, app_name: str, path_executable: Path,
     return 0
 
 
-# gui
-def gui():
+# no_ui
+def no_ui():
+    pass
+
+
+# terminal_ui
+def terminal_ui():
+    pass
+
+
+# graphical_ui
+def graphical_ui():
     global DESKTOP_FILES_DIRECTORY
     global PACKAGES_DIRECTORY
     global _LOGGER
+
+    global _APP_ID
+    global _APP_NAME
+    global _PATH_EXECUTABLE
+    global _PATHS_ADD_FILES
+    global _PATH_ADD_FILES_DIR
+    global _PATH_ICON
+    global _COMMENT
+    global _CATEGORIES
+    global _KEYWORDS
+    global _TERMINAL
+    global _GENERIC_NAME
 
     sg.theme('DarkAmber')
 
@@ -173,19 +283,19 @@ def gui():
 
         [
             sg.Text('Package name', size=(20, 1)),
-            sg.InputText(key='-APP_NAME-')
+            sg.InputText(_APP_NAME, key='-APP_NAME-')
         ],
         [
             sg.Text('Package identifier', size=(20, 1)),
-            sg.InputText(key='-APP_ID-')
+            sg.InputText(_APP_ID, key='-APP_ID-')
         ],
         [
             sg.Text('Generic name', size=(20, 1)),
-            sg.InputText(key='-GENERIC_NAME-')
+            sg.InputText(_GENERIC_NAME, key='-GENERIC_NAME-')
         ],
         [
             sg.Text('Comment', size=(20, 1)),
-            sg.InputText(key='-COMMENT-')
+            sg.InputText(_COMMENT, key='-COMMENT-')
         ]
     ]
 
@@ -195,17 +305,23 @@ def gui():
         ],
 
         [
-            sg.Text('AppImage', size=(20, 1)),
-            sg.InputText(key='-FILE_APPIMAGE-'),
-            sg.FileBrowse(file_types=[('AppImage', '*.AppImage')], initial_folder=Path('~/Downloads'))
+            sg.Text('Executable', size=(20, 1)),
+            sg.InputText(_PATH_EXECUTABLE, key='-FILE_EXECUTABLE-'),
+            sg.FileBrowse(file_types=[('All files', '*.*')], initial_folder=Path('~/Downloads'))
         ],
         [
             sg.Text('Icon', size=(20, 1)),
-            sg.InputText(key='-FILE_ICON-'),
+            sg.InputText(_PATH_ICON, key='-FILE_ICON-'),
             sg.FileBrowse(file_types=[('JPEG', '*.jpg'), ('PNG', '*.png')], initial_folder=Path('~/Downloads'))
         ],
     ]
-
+    
+    tmp_keywords = []
+    if type(_KEYWORDS) is list:
+        tmp_keywords = _KEYWORDS
+    tmp_categories = []
+    if type(_CATEGORIES) is list:
+        tmp_categories = _CATEGORIES
     layout_row_metadata_search = [
         [
             sg.Text('Search metadata', font=('Helvetica', 22))
@@ -213,12 +329,12 @@ def gui():
 
         [
             sg.Text('Keywords', size=(20, 1)),
-            sg.InputText(key='-KEYWORDS-'),
+            sg.InputText(';'.join(tmp_keywords), key='-KEYWORDS-'),
             sg.Text('(";" separated)')
         ],
         [
             sg.Text('Categories', size=(20, 1)),
-            sg.InputText(key='-CATEGORIES-'),
+            sg.InputText(';'.join(tmp_categories), key='-CATEGORIES-'),
             sg.Text('(";" separated)')
         ]
     ]
@@ -230,7 +346,7 @@ def gui():
 
         [
             sg.Text('Terminal', size=(20, 1)),
-            sg.Drop(values=('False', 'True'), key='-TERMINAL-', auto_size_text=True)
+            sg.Drop(default_value=_TERMINAL, values=('False', 'True'), key='-TERMINAL-', auto_size_text=True)
         ]
     ]
 
@@ -335,5 +451,12 @@ def gui():
 
 
 if __name__ == '__main__':
-    #gui()
-    install_package('test2', 'Test 2', Path('/home/andreas/Documents/PrusaSlicer-2.4.2+linux-x64-GTK3-202204251120.AppImage'), [Path('/home/andreas/Documents/file1'), Path('/home/andreas/Documents/file2')], Path('/home/andreas/Documents/app_files'), Path('/home/andreas/Documents/Screenshot from 2022-07-04 08-37-14.png'))
+    argument_parser()
+
+    if args.ui == 'tui':
+        terminal_ui()
+    elif args.ui == 'none':
+        no_ui()
+    else:
+        graphical_ui()
+    #install_package('test2', 'Test 2', Path('/home/andreas/Documents/PrusaSlicer-2.4.2+linux-x64-GTK3-202204251120.AppImage'), [Path('/home/andreas/Documents/file1'), Path('/home/andreas/Documents/file2')], Path('/home/andreas/Documents/app_files'), Path('/home/andreas/Documents/Screenshot from 2022-07-04 08-37-14.png'))
