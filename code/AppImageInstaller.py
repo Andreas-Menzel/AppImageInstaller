@@ -265,7 +265,7 @@ def no_ui():
                     app_name = _APP_NAME,
                     path_executable = _PATH_EXECUTABLE,
                     paths_add_files = _PATH_ADD_FILES,
-                    path_add_files_dir = _PATH_ADD_FILES_DIR,
+                    path_add_files_dir = _PATHS_ADD_FILES_DIR,
                     path_icon = _PATH_ICON,
                     comment = _COMMENT,
                     categories = _CATEGORIES,
@@ -276,7 +276,201 @@ def no_ui():
 
 # terminal_ui
 def terminal_ui():
-    pass
+    global _APP_ID
+    global _APP_NAME
+    global _PATH_EXECUTABLE
+    global _PATHS_ADD_FILES
+    global _PATH_ADD_FILES_DIR
+    global _PATH_ICON
+    global _COMMENT
+    global _CATEGORIES
+    global _KEYWORDS
+    global _TERMINAL
+    global _GENERIC_NAME
+
+    while True:
+        display_app_id = ''
+        if not _APP_ID is None:
+            display_app_id = _APP_ID
+
+        display_app_name = ''
+        if not _APP_NAME is None:
+            display_app_name = _APP_NAME
+        
+        display_path_executable = ''
+        if not _PATH_EXECUTABLE is None:
+            display_path_executable = _PATH_EXECUTABLE.absolute()
+
+        display_paths_add_files = ''
+        if not _PATHS_ADD_FILES is None:
+            tmp_paths_add_files = []
+            for path in _PATHS_ADD_FILES:
+                tmp_paths_add_files.append(str(path.absolute()))
+            display_paths_add_files = ';'.join(tmp_paths_add_files)
+        
+        display_path_add_files_dir = ''
+        if not _PATH_ADD_FILES_DIR is None:
+            display_path_add_files_dir = _PATH_ADD_FILES_DIR
+        
+        display_path_icon = ''
+        if not _PATH_ICON is None:
+            display_path_icon = _PATH_ICON
+        
+        display_comment = ''
+        if not _COMMENT is None:
+            display_comment = _COMMENT
+        
+        display_categories = ''
+        if not _CATEGORIES is None:
+            display_categories = ';'.join(_CATEGORIES)
+        
+        display_keywords = ''
+        if not _KEYWORDS is None:
+            display_keywords = ';'.join(_KEYWORDS)
+        
+        display_terminal = ''
+        if not _TERMINAL is None:
+            display_terminal = _TERMINAL
+        
+        display_generic_name = ''
+        if not _GENERIC_NAME is None:
+            display_generic_name = _GENERIC_NAME
+
+        print()
+        print(f' 1) app id: "{display_app_id}"')
+        print(f' 2) app name: "{display_app_name}"')
+        print(f' 3) path to executable: "{display_path_executable}"')
+        print(f' 4) additional app files: "{display_paths_add_files}"')
+        print(f' 5) path to additional files directory: "{display_path_add_files_dir}"')
+        print(f' 6) path to icon: "{display_path_icon}"')
+        print(f' 7) comment: "{display_comment}"')
+        print(f' 8) categories: "{display_categories}"')
+        print(f' 9) keywords: "{display_keywords}"')
+        print(f'10) terminal: "{display_terminal}"')
+        print(f'11) generic name: "{display_generic_name}"')
+        print()
+        print(f'i) install')
+        print(f'c) cancel')
+
+        choice = input('> ')
+        coice = choice.lower()
+        if choice == 'c':
+            break
+        elif choice == 'i':
+            install_package(app_id = _APP_ID,
+                    app_name = _APP_NAME,
+                    path_executable = _PATH_EXECUTABLE,
+                    paths_add_files = _PATHS_ADD_FILES,
+                    path_add_files_dir = _PATH_ADD_FILES_DIR,
+                    path_icon = _PATH_ICON,
+                    comment = _COMMENT,
+                    categories = _CATEGORIES,
+                    keywords = _KEYWORDS,
+                    terminal = _TERMINAL,
+                    genericName = _GENERIC_NAME)
+            break
+        elif choice == '1':
+            user_input = input('APP ID: ')
+            _APP_ID = user_input
+        elif choice == '2':
+            user_input = input('APP NAME: ')
+            _APP_NAME = user_input
+        elif choice == '3':
+            while True:
+                user_input = input('PATH TO EXECUTABLE: ')
+                if user_input == '':
+                    _PATH_EXECUTABLE = ''
+                    break
+                else:
+                    path_user_input = Path(user_input)
+                    if path_user_input.exists() and path_user_input.is_file():
+                        _PATH_EXECUTABLE = path_user_input
+                        break
+                    else:
+                        print('This file does not exist.')
+        elif choice == '4':
+            _PATHS_ADD_FILES = []
+            print('Enter one file per input. Use empty string to save.')
+            while True:
+                user_input = input('PATH TO ADDITOINAL APP FILE: ')
+                if user_input == '':
+                    if _PATHS_ADD_FILES == []:
+                        _PATHS_ADD_FILES = None
+                    break
+                else:
+                    path_user_input = Path(user_input)
+                    if path_user_input.exists() and path_user_input.is_file():
+                        _PATHS_ADD_FILES.append(path_user_input)
+                    else:
+                        print('This file does not exist.')
+        elif choice == '5':
+            while True:
+                user_input = input('PATH TO ADDITIONAL FILES DIRECTORY: ')
+                if user_input == '':
+                    _PATH_ADD_FILES_DIR = ''
+                    break
+                else:
+                    path_user_input = Path(user_input)
+                    if path_user_input.exists() and path_user_input.is_dir():
+                        _PATH_ADD_FILES_DIR = path_user_input
+                        break
+                    else:
+                        print('This directory does not exist.')
+        elif choice == '6':
+            while True:
+                user_input = input('PATH TO ICON: ')
+                if user_input == '':
+                    _PATH_ICON = ''
+                    break
+                else:
+                    path_user_input = Path(user_input)
+                    if path_user_input.exists() and path_user_input.is_file():
+                        _PATH_ICON = path_user_input
+                        break
+                    else:
+                        print('This file does not exist.')
+        elif choice == '7':
+            user_input = input('COMMENT: ')
+            _COMMENT = user_input
+        elif choice == '8':
+            _CATEGORIES = []
+            print('Enter one category per input. Use empty string to save.')
+            while True:
+                user_input = input('CATEGORY: ')
+                if user_input == '':
+                    if _CATEGORIES == []:
+                        _CATEGORIES = None
+                    break
+                else:
+                    _CATEGORIES.append(user_input)
+        elif choice == '9':
+            _KEYWORDS = []
+            print('Enter one keyword per input. Use empty string to save.')
+            while True:
+                user_input = input('KEYWORD: ')
+                if user_input == '':
+                    if _KEYWORDS == []:
+                        _KEYWORDS = None
+                    break
+                else:
+                    _KEYWORDS.append(user_input)
+        elif choice == '10':
+            while True:
+                user_input = input('SHOW TERMINAL? (true / false): ')
+                user_input = user_input.lower()
+                if user_input == 'true':
+                    _TERMINAL = True
+                    break
+                elif user_input == 'false':
+                    _TERMINAL = False
+                    break
+                else:
+                    print('Input not recognized.')
+        elif choice == '11':
+            user_input = input('GENERIC NAME: ')
+            _GENERIC_NAME = user_input
+        else:
+            print('Input not recognized.')
 
 
 # graphical_ui
