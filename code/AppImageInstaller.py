@@ -230,8 +230,48 @@ def install_package(app_id: str, app_name: str, path_executable: Path,
 
 
 # no_ui
+#
+# Installs the app with the arguments given to argparse.
+#
+# @return   None
+#
+# @raise    ValueError  If app_id, app_name or path_executable was not given.
 def no_ui():
-    pass
+    global _APP_ID
+    global _APP_NAME
+    global _PATH_EXECUTABLE
+    global _PATHS_ADD_FILES
+    global _PATH_ADD_FILES_DIR
+    global _PATH_ICON
+    global _COMMENT
+    global _CATEGORIES
+    global _KEYWORDS
+    global _TERMINAL
+    global _GENERIC_NAME
+
+    missing_arguments = []
+    
+    if _APP_ID is None:
+        missing_arguments.append('--app_id')
+    if _APP_NAME is None:
+        missing_arguments.append('--app_name')
+    if _PATH_EXECUTABLE is None:
+        missing_arguments.append('--path_executable')
+    
+    if len(missing_arguments) > 0:
+        raise ValueError(f'Argument(s) missing: {", ".join(missing_arguments)}')
+
+    install_package(app_id = _APP_ID,
+                    app_name = _APP_NAME,
+                    path_executable = _PATH_EXECUTABLE,
+                    paths_add_files = _PATH_ADD_FILES,
+                    path_add_files_dir = _PATH_ADD_FILES_DIR,
+                    path_icon = _PATH_ICON,
+                    comment = _COMMENT,
+                    categories = _CATEGORIES,
+                    keywords = _KEYWORDS,
+                    terminal = _TERMINAL,
+                    genericName = _GENERIC_NAME)
 
 
 # terminal_ui
