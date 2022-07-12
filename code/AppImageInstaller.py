@@ -499,12 +499,12 @@ def graphical_ui():
         ],
 
         [
-            sg.Text('Packages directory', size=(20, 1)),
+            sg.Text('Packages directory', size=(30, 1)),
             sg.InputText(PACKAGES_DIRECTORY.absolute(), key='-PACKAGES_DIRECTORY-'),
             sg.FolderBrowse(initial_folder=PACKAGES_DIRECTORY)
         ],
         [
-            sg.Text('.desktop directory', size=(20, 1)),
+            sg.Text('.desktop directory', size=(30, 1)),
             sg.InputText(DESKTOP_FILES_DIRECTORY.absolute(), key='-DESKTOP_FILES_DIRECTORY-'),
             sg.FolderBrowse(initial_folder=DESKTOP_FILES_DIRECTORY)
         ]
@@ -516,19 +516,19 @@ def graphical_ui():
         ],
 
         [
-            sg.Text('Package name', size=(20, 1)),
+            sg.Text('App name', size=(30, 1)),
             sg.InputText(_APP_NAME, key='-APP_NAME-')
         ],
         [
-            sg.Text('Package identifier', size=(20, 1)),
+            sg.Text('App identifier', size=(30, 1)),
             sg.InputText(_APP_ID, key='-APP_ID-')
         ],
         [
-            sg.Text('Generic name', size=(20, 1)),
+            sg.Text('Generic name', size=(30, 1)),
             sg.InputText(_GENERIC_NAME, key='-GENERIC_NAME-')
         ],
         [
-            sg.Text('Comment', size=(20, 1)),
+            sg.Text('Comment', size=(30, 1)),
             sg.InputText(_COMMENT, key='-COMMENT-')
         ]
     ]
@@ -539,12 +539,22 @@ def graphical_ui():
         ],
 
         [
-            sg.Text('Executable', size=(20, 1)),
+            sg.Text('Executable', size=(30, 1)),
             sg.InputText(_PATH_EXECUTABLE, key='-FILE_EXECUTABLE-'),
             sg.FileBrowse(file_types=[('All files', '*.*')], initial_folder=Path('~/Downloads'))
         ],
         [
-            sg.Text('Icon', size=(20, 1)),
+            sg.Text('Additional app files', size=(30, 1)),
+            sg.InputText(_PATHS_ADD_FILES, key='-ADD_FILES-'),
+            sg.FilesBrowse(file_types=[('All files', '*')], initial_folder=Path('~/Downloads'))
+        ],
+        [
+            sg.Text('Additional app files directory', size=(30, 1)),
+            sg.InputText(_PATHS_ADD_FILES, key='-ADD_FILES_DIR-'),
+            sg.FolderBrowse(initial_folder=Path('~/Downloads'))
+        ],
+        [
+            sg.Text('Icon', size=(30, 1)),
             sg.InputText(_PATH_ICON, key='-FILE_ICON-'),
             sg.FileBrowse(file_types=[('JPEG', '*.jpg'), ('PNG', '*.png')], initial_folder=Path('~/Downloads'))
         ],
@@ -562,12 +572,12 @@ def graphical_ui():
         ],
 
         [
-            sg.Text('Keywords', size=(20, 1)),
+            sg.Text('Keywords', size=(30, 1)),
             sg.InputText(';'.join(tmp_keywords), key='-KEYWORDS-'),
             sg.Text('(";" separated)')
         ],
         [
-            sg.Text('Categories', size=(20, 1)),
+            sg.Text('Categories', size=(30, 1)),
             sg.InputText(';'.join(tmp_categories), key='-CATEGORIES-'),
             sg.Text('(";" separated)')
         ]
@@ -579,7 +589,7 @@ def graphical_ui():
         ],
 
         [
-            sg.Text('Terminal', size=(20, 1)),
+            sg.Text('Terminal', size=(30, 1)),
             sg.Drop(default_value=_TERMINAL, values=('False', 'True'), key='-TERMINAL-', auto_size_text=True)
         ]
     ]
@@ -611,7 +621,15 @@ def graphical_ui():
             app_name = values['-APP_NAME-']
             generic_name = values['-GENERIC_NAME-']
 
-            file_appimage = Path(values['-FILE_APPIMAGE-'])
+            file_executable = Path(values['-FILE_EXECUTABLE-'])
+            
+            add_files = []
+            tmp_str_paths = values['-ADD_FILES-'].split(';')
+            for path in tmp_str_paths:
+                add_files.append(Path(path))
+            
+            add_files_dir = values['-ADD_FILES_DIR-']
+
             file_icon = Path(values['-FILE_ICON-'])
             
             comment = values['-COMMENT-']
@@ -627,20 +645,45 @@ def graphical_ui():
 
             if app_id == '':
                 app_id = None
+
             if app_name == '':
                 app_name = None
+
             if generic_name == '':
                 generic_name = None
-            if not (file_appimage.exists() and file_appimage.is_file()):
-                file_appimage = None
-            if not (file_icon.exists() and file_icon.is_file()):
+
+            if file_executable == '':
+                file_executable = None
+            else:
+                file_executable = Path(file_executable)
+
+            if add_files == []:
+                add_files = None
+            else:
+                tmp_add_files = add_files
+                add_files = []
+                for my_file in tmp_add_files:
+                    add_files.append(Path(my_file))
+
+            if add_files_dir == '':
+                add_files_dir = None
+            else:
+                add_files_dir = Path(add_files_dir)
+                
+            if file_icon == '':
                 file_icon = None
+            else:
+                file_icon = Path(file_icon)
+
             if comment == '':
                 comment = None
+
             if categories == '':
                 categories = None
+
             if keywords == '':
                 keywords = None
+
             if terminal == '':
                 terminal = None
             
@@ -660,17 +703,40 @@ def graphical_ui():
                 missing_arguments.append('app_id')
             if app_name is None:
                 missing_arguments.append('app_name')
-            if file_appimage is None:
-                missing_arguments.append('file_appimage')
+            if file_executable is None:
+                missing_arguments.append('file_executable')
 
             if len(missing_arguments) > 0:
                 _LOGGER.warn(f'Can not install package. Arguments missing: {", ".join(missing_arguments)}')
                 sg.popup('Can not install package.', f'Arguments missing: {", ".join(missing_arguments)}')
                 continue
 
+            if not (file_executable.exists() and file_executable.is_file()):
+                _LOGGER.warn(f'Can not install package. File_executable does not exist ({file_executable.absolute}).')
+                sg.popup('Can not install package.', f'File_executable does not exist ({file_executable.absolute}).')
+                continue
+            
+            for add_file in add_files:
+                if not (add_file.exists() and add_file.is_file()):
+                    _LOGGER.warn(f'Can not install package. Add_file does not exist ({add_file.absolute}).')
+                    sg.popup('Can not install package.', f'Add_file does not exist ({add_file.absolute}).')
+                    continue
+
+            if not (add_files_dir.exists() and add_files_dir.is_dir()):
+                _LOGGER.warn(f'Can not install package. Add_files_dir does not exist ({add_files_dir.absolute}).')
+                sg.popup('Can not install package.', f'Add_files_dir does not exist ({add_files_dir.absolute}).')
+                continue
+
+            if not (file_icon.exists() and file_icon.is_file()):
+                _LOGGER.warn(f'Can not install package. File_icon does not exist ({file_icon.absolute}).')
+                sg.popup('Can not install package.', f'File_icon does not exist ({file_icon.absolute}).')
+                continue
+
             install_package(app_id = app_id,
                             app_name = app_name,
-                            path_executable = file_appimage,
+                            path_executable = file_executable,
+                            paths_add_files = add_files,
+                            path_add_files_dir = add_files_dir,
                             path_icon = file_icon,
                             comment = comment,
                             categories = categories,
