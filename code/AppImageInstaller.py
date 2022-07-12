@@ -64,6 +64,7 @@ parser.add_argument('--app_id', help='ID of the app. Can be same as app_name')
 parser.add_argument('--app_name', help='Name of the app.')
 parser.add_argument('--path_executable', help='Path to the (main) executable file.')
 parser.add_argument('--paths_add_files', nargs='+', help='Path')
+parser.add_argument('--path_add_files_dir', nargs='+', help='Path')
 parser.add_argument('--path_icon', help='Path to the app icon.')
 parser.add_argument('--comment', help='Comment describing the app.')
 parser.add_argument('--categories', nargs='+', help='')
@@ -79,7 +80,7 @@ args = parser.parse_args()
 # Parses the arguments given by argparse to global variables.
 #
 # @return   None
-def argument_parser():
+def arguments_sanitizer():
     global _APP_ID
     global _APP_NAME
     global _PATH_EXECUTABLE
@@ -98,12 +99,22 @@ def argument_parser():
         _APP_NAME = args.app_name
     if not args.path_executable is None:
         _PATH_EXECUTABLE = Path(args.path_executable)
+        if not (_PATH_EXECUTABLE.exists() and _PATH_EXECUTABLE.is_file()):
+            raise ValueError(f'File in "--path_executable" does not exist "{_PATH_EXECUTABLE.absolute()}".')
     if not args.paths_add_files is None:
         _PATHS_ADD_FILES = []
         for path in args.paths_add_files:
             _PATHS_ADD_FILES.append(Path(path))
+            if not (Path(path).exists() and Path(path).is_file()):
+                raise ValueError(f'File in "--paths_add_files" does not exist "{Path(path).absolute()}".')
+    if not args.path_add_files_dir is None:
+        _PATH_ADD_FILES_DIR = Path(args.path_add_files_dir)
+        if not (_PATH_ADD_FILES_DIR.exists() and _PATH_ADD_FILES_DIR.is_dir()):
+            raise ValueError(f'Folder in "--path_add_files_dir" does not exist "{_PATH_ADD_FILES_DIR.absolute()}".')
     if not args.path_icon is None:
         _PATH_ICON = Path(args.path_icon)
+        if not (_PATH_ICON.exists() and _PATH_ICON.is_file()):
+            raise ValueError(f'File in "--path_icon" does not exist "{_PATH_ICON.absolute()}".')
     if not args.comment is None:
         _COMMENT = args.comment
     if not args.categories is None:
@@ -115,7 +126,10 @@ def argument_parser():
         for keyword in args.keywords:
             _KEYWORDS.append(keyword)
     if not args.terminal is None:
-        _TERMINAL = args.terminal
+        if args.terminal.lower() == 'true' or args.terminal == '1':
+            _TERMINAL = True
+        elif args.terminal.lower() == 'false' or args.terminal == '0':
+            _TERMINAL = False
     if not args.generic_name is None:
         _GENERIC_NAME = args.generic_name
 
@@ -751,7 +765,7 @@ def graphical_ui():
 
 
 if __name__ == '__main__':
-    argument_parser()
+    arguments_sanitizer()
 
     if args.ui == 'tui':
         terminal_ui()
@@ -759,4 +773,3 @@ if __name__ == '__main__':
         no_ui()
     else:
         graphical_ui()
-    #install_package('test2', 'Test 2', Path('/home/andreas/Documents/PrusaSlicer-2.4.2+linux-x64-GTK3-202204251120.AppImage'), [Path('/home/andreas/Documents/file1'), Path('/home/andreas/Documents/file2')], Path('/home/andreas/Documents/app_files'), Path('/home/andreas/Documents/Screenshot from 2022-07-04 08-37-14.png'))
