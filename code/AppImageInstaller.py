@@ -14,7 +14,7 @@
 #-------------------------------------------------------------------------------
 
 
-script_version = '0.0.0'
+script_version = '1.0.0'
 
 
 import argparse
@@ -57,20 +57,37 @@ parser.add_argument('--version',
     version='%(prog)s ' + script_version)
 
 parser.add_argument('--ui', choices=['gui', 'tui', 'none'],
-    help='Specify the user interface. Select between graphical user interface, terminal user interface \
-        or non-interactive.')
+    help='Specify the user interface. Select between graphical user interface,\
+        terminal user interface or non-interactive.')
 
-parser.add_argument('--app_id', help='ID of the app. Can be same as app_name')
-parser.add_argument('--app_name', help='Name of the app.')
-parser.add_argument('--path_executable', help='Path to the (main) executable file.')
-parser.add_argument('--paths_add_files', nargs='+', help='Path')
-parser.add_argument('--path_add_files_dir', nargs='+', help='Path')
-parser.add_argument('--path_icon', help='Path to the app icon.')
-parser.add_argument('--comment', help='Comment describing the app.')
-parser.add_argument('--categories', nargs='+', help='')
-parser.add_argument('--keywords', nargs='+', help='')
-parser.add_argument('--terminal', help='')
-parser.add_argument('--generic_name', help='Generic name of the app.')
+parser.add_argument('--app_id',
+    help='ID of the app. Can be same as app_name')
+parser.add_argument('--app_name',
+    help='Name of the app.')
+parser.add_argument('--path_executable',
+    help='Path to the (main) executable file.')
+parser.add_argument('--paths_add_files',
+    nargs='+',
+    help='Paths to additional app files. The files will be copied to the same\
+          directory as the main executable.')
+parser.add_argument('--path_add_files_dir',
+    nargs='+',
+    help='Path to a directory containing additional app files. The files will \
+          be copied to the same directory as the main executable.')
+parser.add_argument('--path_icon',
+    help='Path to the app icon image.')
+parser.add_argument('--comment',
+    help='Comment describing the app.')
+parser.add_argument('--categories',
+    nargs='+',
+    help='Categories.')
+parser.add_argument('--keywords',
+    nargs='+',
+    help='Keywords.')
+parser.add_argument('--terminal',
+    help='.desktop parameter: Terminal')
+parser.add_argument('--generic_name',
+    help='Generic name of the app.')
 
 args = parser.parse_args()
 
