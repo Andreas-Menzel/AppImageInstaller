@@ -4,7 +4,7 @@
 
 **NOTE: This project is only relevant for Linux-Users.**
 
-AppImages are great because they are easy to use work on nearly every Linux
+AppImages are great because they are easy to use and work on nearly every Linux
 system. The only downside is that you can not install them and they don't appear
 in the Desktop Menu. The same downside exists for e.g. Bash- and Python scripts.
 
@@ -12,96 +12,117 @@ With AppImageInstaller you can easily organize all your AppImages and other
 non-installable programs in a central location and create a .desktop file
 containing all relevant information about the program.
 
-AppImageInstaller also comes with functions to reinstall multiple programs
-(can be useful if you want to move programs to another / new system). Installing
-and de-installing a program is as simple as clicking a button.
-
 ## Install AppImageInstaller
 
-Installing is not required, however I recommend it to make using it easier
-(especially if you want to change one of the directories). After installing you
-should find AppImageInstaller in your Desktop Menu.
+Installing is not required, however I recommend it to make using it easier.
+After installing you should find AppImageInstaller in your Desktop Menu.
 
-Execute `code/AppImageInstaller_install.py`.
-
-```
-python3 AppImageInstaller_install.py
-```
-
-You can also specify the directory where the packages are installed into and
-the directory where the .desktop files are saved:
+We will use AppImageInstaller to install itself. But first we have to clone the
+repository.
 
 ```
-python3 AppImageInstaller_install.py --packages_directory <pack_dir> --desktop_files_directory <desk_dir>
+git clone git@github.com:Andreas-Menzel/AppImageInstaller.git
+
+cd ./code/
+
+python3 AppImageInstaller.py --ui none --app_id 'appimageinstaller' --app_name 'AppImageInstaller' --path_executable './AppImageInstaller.py' --comment 'Have a look at https://github.com/Andreas-Menzel/AppImageInstaller.' --keywords 'app' 'application' 'image' 'appimage' 'installer' --generic_name 'Installer'
 ```
 
-packages_directory is where the packages will be installed into. The default is
-`~/AppImages`.
-
-desktop_files_directory is where the .desktop files will be placed. The default
-is `~/.local/share/applications`.
+AppImageInstaller is now located at '~/AppImages/'.
 
 ## How can I use AppImageInstaller?
 
+You can use one of three user interfaces. Passing `--ui <ui>` to
+AppImageInstaller will select the user interface.
+
+1) **GUI - graphical user interface**
+
+    This is the standard when executing AppImageInstaller.
+
+2) **TUI - terminal user interface**
+
+    You can use this ui when AppImageInstaller is executed on a system without
+    a desktop environment or if you are accessing it via SSH.
+
+3) **none - no user interface**
+
+    Use this to install an application with a single command non-interactively.
+
 I recommend using the graphical user interface, but if you really love using
 the terminal and don't want to see the beautiful gui, you can absolutely access
-every feature via the terminal alone.
+every feature via the terminal alone (either TUI or none).
 
-### Interactive graphical user interface
+### none - Non-interactive command line-execution
 
-#### Install a program
+If you want to use this mode of execution, you have to pass all arguments to
+AppImageInstaller directly. See `--help` or the
+[Parameters](#Parameters)-section for more details.
 
-TODO
+Example:
 
-#### Deinstall a program
+```
+python3 AppImageInstaller.py --ui 'none' --app_id 'test_app' --app_name 'Test App' --path_executable '/home/user/Downloads/App.AppImage'
+```
 
-TODO
+### GUI - Interactive graphical user interface
 
-#### Create a backup
+You can pass arguments when executing AppImageInstaller to pre-select some of
+the values. See `--help` or the [Parameters](#Parameters)-section for more
+details.
 
-TODO
+Example:
 
-#### Reinstall a backup
+```
+python3 AppImageInstaller.py --ui 'gui'
+```
 
-TODO
+or
 
-### Single-command terminal execution
+```
+python3 AppImageInstaller.py
+```
 
-#### Install a program
+### TUI - Interactive terminal user interface
 
-TODO
+You can pass arguments when executing AppImageInstaller to pre-select some of
+the values. See `--help` or the [Parameters](#Parameters)-section for more
+details.
 
-#### Deinstall a program
+Example:
 
-TODO
+```
+python3 AppImageInstaller.py --ui 'tui'
+```
 
-#### Create a backup
+### Parameters
 
-TODO
+```
+usage: AppImageInstaller [-h] [--version] [--ui {gui,tui,none}] [--app_id APP_ID] [--app_name APP_NAME] [--path_executable PATH_EXECUTABLE]
+                         [--paths_add_files PATHS_ADD_FILES [PATHS_ADD_FILES ...]] [--path_add_files_dir PATH_ADD_FILES_DIR [PATH_ADD_FILES_DIR ...]] [--path_icon PATH_ICON]
+                         [--comment COMMENT] [--categories CATEGORIES [CATEGORIES ...]] [--keywords KEYWORDS [KEYWORDS ...]] [--terminal TERMINAL] [--generic_name GENERIC_NAME]
 
-#### Reinstall a backup
+Install AppImages and other non-installable programs and create XDG Desktop Menu entries.
 
-TODO
-
-## FAQ
-
-**How can I change the installation directory afterwards?**
-
-1. Modify the configuration file.
-
-    ```
-    nano ~/AppImages/appimageinstaller/config.json
-    ```
-2. Move the package folder to the new location.
-
-    ```
-    mv ~/AppImages ~/AppImages_new
-    ```
-3. Move the .desktop files to the new location.
-
-    This is most likely not required. If you want to do it anyway, you have to
-    move all .desktop files manually.
-    
-    ```
-    mv <old_path>/<program_id>.desktop <new_path>/<program_id>.desktop
-    ```
+options:
+  -h, --help            show this help message and exit
+  --version             show program's version number and exit
+  --ui {gui,tui,none}   Specify the user interface. Select between graphical user interface, terminal user interface or non-interactive.
+  --app_id APP_ID       ID of the app. Can be same as app_name
+  --app_name APP_NAME   Name of the app.
+  --path_executable PATH_EXECUTABLE
+                        Path to the (main) executable file.
+  --paths_add_files PATHS_ADD_FILES [PATHS_ADD_FILES ...]
+                        Paths to additional app files. The files will be copied to the same directory as the main executable.
+  --path_add_files_dir PATH_ADD_FILES_DIR [PATH_ADD_FILES_DIR ...]
+                        Path to a directory containing additional app files. The files will be copied to the same directory as the main executable.
+  --path_icon PATH_ICON
+                        Path to the app icon image.
+  --comment COMMENT     Comment describing the app.
+  --categories CATEGORIES [CATEGORIES ...]
+                        Categories.
+  --keywords KEYWORDS [KEYWORDS ...]
+                        Keywords.
+  --terminal TERMINAL   .desktop parameter: Terminal
+  --generic_name GENERIC_NAME
+                        Generic name of the app.
+```
