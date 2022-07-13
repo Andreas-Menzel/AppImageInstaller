@@ -25,7 +25,7 @@ git clone git@github.com:Andreas-Menzel/AppImageInstaller.git
 
 cd ./code/
 
-python3 AppImageInstaller.py --ui none --app_id 'appimageinstaller' --app_name 'AppImageInstaller' --path_executable './AppImageInstaller.py' --comment 'Have a look at https://github.com/Andreas-Menzel/AppImageInstaller.' --keywords 'app' 'application' 'image' 'appimage' 'installer' --generic_name 'Installer'
+python3 AppImageInstaller.py --ui none --app_id 'appimageinstaller' --app_name 'AppImageInstaller' --path_executable './AppImageInstaller.py' --paths_add_files 'logHandler.py' --comment 'Have a look at https://github.com/Andreas-Menzel/AppImageInstaller.' --keywords 'app' 'application' 'image' 'appimage' 'installer' --generic_name 'Installer'
 ```
 
 AppImageInstaller is now located at '~/AppImages/'.
