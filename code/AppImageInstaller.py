@@ -26,7 +26,11 @@ import stat
 import logHandler
 
 
-_LOGGER = logHandler.getSimpleLogger(__name__, streamLogLevel=logHandler.INFO, fileLogLevel=logHandler.DEBUG)
+#_LOGGER = logHandler.getSimpleLogger(__name__, streamLogLevel=logHandler.INFO, fileLogLevel=logHandler.DEBUG)
+_LOGGER = logHandler.get_logger(__name__,
+                                stream_logger = { 'log_level': logHandler.INFO,'stream': None },
+                                file_logger = { 'log_level': logHandler.DEBUG, 'filename': f'{__name__}.log', 'write_mode': 'a' },
+                                mode = None)
 
 # Directory where the .AppImages will be installed
 PACKAGES_DIRECTORY = Path.home().joinpath('AppImages')
@@ -733,7 +737,7 @@ def graphical_ui():
                 settings_directorys_invalid.append('desktop_files_directory')
 
             if len(settings_directorys_invalid) > 0:
-                _LOGGER.warn(f'Can not install package. Directory does not exist: {", ".join(settings_directorys_invalid)}')
+                _LOGGER.warning(f'Can not install package. Directory does not exist: {", ".join(settings_directorys_invalid)}')
                 sg.popup('Can not install package.', f'Directory does not exist: {", ".join(settings_directorys_invalid)}')
 
             missing_arguments = []
@@ -745,31 +749,31 @@ def graphical_ui():
                 missing_arguments.append('file_executable')
 
             if len(missing_arguments) > 0:
-                _LOGGER.warn(f'Can not install package. Arguments missing: {", ".join(missing_arguments)}')
+                _LOGGER.warning(f'Can not install package. Arguments missing: {", ".join(missing_arguments)}')
                 sg.popup('Can not install package.', f'Arguments missing: {", ".join(missing_arguments)}')
                 continue
 
             if not (file_executable.exists() and file_executable.is_file()):
-                _LOGGER.warn(f'Can not install package. File_executable does not exist ({file_executable.absolute}).')
+                _LOGGER.warning(f'Can not install package. File_executable does not exist ({file_executable.absolute}).')
                 sg.popup('Can not install package.', f'File_executable does not exist ({file_executable.absolute}).')
                 continue
             
             if not add_files is None:
                 for add_file in add_files:
                     if not (add_file.exists() and add_file.is_file()):
-                        _LOGGER.warn(f'Can not install package. Add_file does not exist ({add_file.absolute}).')
+                        _LOGGER.warning(f'Can not install package. Add_file does not exist ({add_file.absolute}).')
                         sg.popup('Can not install package.', f'Add_file does not exist ({add_file.absolute}).')
                         continue
 
             if not add_files_dir is None:
                 if not (add_files_dir.exists() and add_files_dir.is_dir()):
-                    _LOGGER.warn(f'Can not install package. Add_files_dir does not exist ({add_files_dir.absolute}).')
+                    _LOGGER.warning(f'Can not install package. Add_files_dir does not exist ({add_files_dir.absolute}).')
                     sg.popup('Can not install package.', f'Add_files_dir does not exist ({add_files_dir.absolute}).')
                     continue
 
             if not file_icon is None:
                 if not (file_icon.exists() and file_icon.is_file()):
-                    _LOGGER.warn(f'Can not install package. File_icon does not exist ({file_icon.absolute}).')
+                    _LOGGER.warning(f'Can not install package. File_icon does not exist ({file_icon.absolute}).')
                     sg.popup('Can not install package.', f'File_icon does not exist ({file_icon.absolute}).')
                     continue
 
