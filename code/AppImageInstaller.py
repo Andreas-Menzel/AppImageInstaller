@@ -648,24 +648,27 @@ def graphical_ui():
             tmp_packages_directory = values['-PACKAGES_DIRECTORY-']
             tmp_desktop_files_directory = values['-DESKTOP_FILES_DIRECTORY-']
 
-            app_id = values['-APP_ID-']
+            # "Naming"
             app_name = values['-APP_NAME-']
+            app_id = values['-APP_ID-']
             generic_name = values['-GENERIC_NAME-']
-
-            file_executable = Path(values['-FILE_EXECUTABLE-'])
-            
-            add_files = []
-            tmp_str_paths = values['-ADD_FILES-'].split(';')
-            for path in tmp_str_paths:
-                add_files.append(Path(path))
-            
-            add_files_dir = values['-ADD_FILES_DIR-']
-
-            file_icon = Path(values['-FILE_ICON-'])
-            
             comment = values['-COMMENT-']
-            categories = values['-CATEGORIES-']
+            
+            # "Search metadata"
             keywords = values['-KEYWORDS-']
+            categories = values['-CATEGORIES-']
+
+            # "File selection"
+            file_executable = Path(values['-FILE_EXECUTABLE-'])
+            add_files = []
+            if not values['-ADD_FILES-'] == "":
+                tmp_str_paths = values['-ADD_FILES-'].split(';')
+                for path in tmp_str_paths:
+                    add_files.append(Path(path))
+            add_files_dir = values['-ADD_FILES_DIR-']
+            file_icon = values['-FILE_ICON-']
+            
+            # "Execution metadata"
             terminal = values['-TERMINAL-']
 
             # Sanitize values
@@ -674,15 +677,27 @@ def graphical_ui():
             if tmp_desktop_files_directory == '' or not Path(tmp_desktop_files_directory).exists():
                 tmp_desktop_files_directory = None
 
-            if app_id == '':
-                app_id = None
-
+            # "Naming"
             if app_name == '':
                 app_name = None
+
+            if app_id == '':
+                app_id = None
 
             if generic_name == '':
                 generic_name = None
 
+            if comment == '':
+                comment = None
+            
+            # "Search metadata"
+            if keywords == '':
+                keywords = None
+
+            if categories == '':
+                categories = None
+
+            # "File selection"
             if file_executable == '':
                 file_executable = None
             else:
@@ -706,15 +721,7 @@ def graphical_ui():
             else:
                 file_icon = Path(file_icon)
 
-            if comment == '':
-                comment = None
-
-            if categories == '':
-                categories = None
-
-            if keywords == '':
-                keywords = None
-
+            # "Execution metadata"
             if terminal == '':
                 terminal = None
             
@@ -747,21 +754,24 @@ def graphical_ui():
                 sg.popup('Can not install package.', f'File_executable does not exist ({file_executable.absolute}).')
                 continue
             
-            for add_file in add_files:
-                if not (add_file.exists() and add_file.is_file()):
-                    _LOGGER.warn(f'Can not install package. Add_file does not exist ({add_file.absolute}).')
-                    sg.popup('Can not install package.', f'Add_file does not exist ({add_file.absolute}).')
+            if not add_files is None:
+                for add_file in add_files:
+                    if not (add_file.exists() and add_file.is_file()):
+                        _LOGGER.warn(f'Can not install package. Add_file does not exist ({add_file.absolute}).')
+                        sg.popup('Can not install package.', f'Add_file does not exist ({add_file.absolute}).')
+                        continue
+
+            if not add_files_dir is None:
+                if not (add_files_dir.exists() and add_files_dir.is_dir()):
+                    _LOGGER.warn(f'Can not install package. Add_files_dir does not exist ({add_files_dir.absolute}).')
+                    sg.popup('Can not install package.', f'Add_files_dir does not exist ({add_files_dir.absolute}).')
                     continue
 
-            if not (add_files_dir.exists() and add_files_dir.is_dir()):
-                _LOGGER.warn(f'Can not install package. Add_files_dir does not exist ({add_files_dir.absolute}).')
-                sg.popup('Can not install package.', f'Add_files_dir does not exist ({add_files_dir.absolute}).')
-                continue
-
-            if not (file_icon.exists() and file_icon.is_file()):
-                _LOGGER.warn(f'Can not install package. File_icon does not exist ({file_icon.absolute}).')
-                sg.popup('Can not install package.', f'File_icon does not exist ({file_icon.absolute}).')
-                continue
+            if not file_icon is None:
+                if not (file_icon.exists() and file_icon.is_file()):
+                    _LOGGER.warn(f'Can not install package. File_icon does not exist ({file_icon.absolute}).')
+                    sg.popup('Can not install package.', f'File_icon does not exist ({file_icon.absolute}).')
+                    continue
 
             install_package(app_id = app_id,
                             app_name = app_name,
